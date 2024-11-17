@@ -4,171 +4,200 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
         }
-        .task-table tr:hover {
-            background-color: #f1f1f1;
+        h1 {
+            text-align: center;
         }
-        .toast {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1050;
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .status-completed {
+            background-color: #90ee90;
+        }
+        .status-pending {
+            background-color: #ffcccb;
+        }
+        .update-btn, .delete-btn {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+        }
+        .update-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Task Manager</a>
-        </div>
-    </nav>
 
-    <div class="container my-4">
-        <div class="row">
-            <div class="col-md-4">
-                <h3>Add New Task</h3>
-                <form id="taskForm">
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="priority" class="form-label">Priority</label>
-                        <input type="number" class="form-control" id="priority" name="priority" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" required>
-                            <option value="true">Completed</option>
-                            <option value="false">Pending</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Add Task</button>
-                </form>
-            </div>
+<div class="container">
+    <h1>Task Manager</h1>
 
-            <div class="col-md-8">
-                <h3>Existing Tasks</h3>
-                <table class="table table-striped task-table">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="taskTable">
-                        <!-- Tasks will be dynamically added here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="form-group">
+        <label for="title">Task Title:</label>
+        <input type="text" id="title" placeholder="Enter task title">
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body" id="toastBody">
-                Task added successfully!
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
+    <div class="form-group">
+        <label for="description">Task Description:</label>
+        <textarea id="description" placeholder="Enter task description"></textarea>
     </div>
 
-    <!-- Include Bootstrap Bundle (with Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const apiUrl = "http://127.0.0.1:5000/task"; // API base URL
+    <div class="form-group">
+        <label for="priority">Priority (1-5):</label>
+        <input type="number" id="priority" min="1" max="5" placeholder="Enter priority level">
+    </div>
 
-        // Display Toast Notification
-        function showToast(message, isError = false) {
-            const toast = document.getElementById("toast");
-            const toastBody = document.getElementById("toastBody");
-            toastBody.textContent = message;
-            toast.classList.toggle("bg-success", !isError);
-            toast.classList.toggle("bg-danger", isError);
-            const toastInstance = new bootstrap.Toast(toast);
-            toastInstance.show();
-        }
+    <div class="form-group">
+        <label for="status">Status (Completed: true / Pending: false):</label>
+        <input type="text" id="status" placeholder="Enter task status (true/false)">
+    </div>
 
-        // Fetch and display existing tasks
-        async function fetchTasks() {
-            const response = await fetch(apiUrl);
-            const tasks = await response.json();
-            const tableBody = document.getElementById("taskTable");
-            tableBody.innerHTML = ""; // Clear existing rows
+    <button id="addTask">Add Task</button>
 
-            tasks.forEach(task => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${task.id}</td>
-                    <td>${task.title}</td>
-                    <td>${task.description}</td>
-                    <td>${task.priority}</td>
-                    <td>${task.status ? "Completed" : "Pending"}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="updateTask(${task.id})">Update</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
+    <h2>Task List</h2>
+    <table id="taskTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    const apiUrl = '/task';
+
+    // Fetch and display tasks
+    function fetchTasks() {
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#taskTable tbody');
+                tableBody.innerHTML = '';  // Clear the table before updating
+
+                data.forEach(task => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${task.id}</td>
+                        <td>${task.title}</td>
+                        <td>${task.description}</td>
+                        <td>${task.priority}</td>
+                        <td class="${task.status ? 'status-completed' : 'status-pending'}">${task.status ? 'Completed' : 'Pending'}</td>
+                        <td>
+                            <button class="update-btn" onclick="updateTask(${task.id})">Update</button>
+                            <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
             });
-        }
+    }
 
-        // Handle form submission
-        document.getElementById("taskForm").addEventListener("submit", async (event) => {
-            event.preventDefault();
+    // Add new task
+    document.getElementById('addTask').addEventListener('click', () => {
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const priority = document.getElementById('priority').value;
+        const status = document.getElementById('status').value === 'true';
 
-            const title = document.getElementById("title").value;
-            const description = document.getElementById("description").value;
-            const priority = parseInt(document.getElementById("priority").value, 10);
-            const status = document.getElementById("status").value === "true";
+        const task = { title, description, priority, status };
 
-            const taskData = { title, description, priority, status };
-
-            // Send POST request to add a new task
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(taskData),
-            });
-
-            if (response.ok) {
-                showToast("Task added successfully!");
-                fetchTasks(); // Refresh the task list
-                document.getElementById("taskForm").reset(); // Clear the form
-            } else {
-                showToast("Failed to add task. Please check your input.", true);
-            }
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(task)
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchTasks();  // Refresh task list
         });
+    });
 
-        // Delete Task
-        async function deleteTask(id) {
-            const response = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
-            if (response.ok) {
-                showToast("Task deleted successfully!");
-                fetchTasks();
-            } else {
-                showToast("Failed to delete task.", true);
-            }
-        }
+    // Update task
+    function updateTask(id) {
+        const title = prompt('Enter new title:');
+        const description = prompt('Enter new description:');
+        const priority = prompt('Enter new priority (1-5):');
+        const status = prompt('Enter new status (true/false):');
 
-        // Load tasks on page load
-        fetchTasks();
-    </script>
+        const task = { title, description, priority, status: status === 'true' };
+
+        fetch(`/task/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(task)
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchTasks();  // Refresh task list
+        });
+    }
+
+    // Delete task
+    function deleteTask(id) {
+        fetch(`/task/${id}`, {
+            method: 'DELETE'
+        })
+        .then(() => {
+            fetchTasks();  // Refresh task list
+        });
+    }
+
+    // Initialize task list on page load
+    window.onload = fetchTasks;
+</script>
+
 </body>
 </html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Task Manager</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Create a New Task</h4>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Title</label>
+                        <input type="text" class="form-control" id="taskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea class="form-control" id="taskDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskPriority">Priority</label>
+                        <input type="number" class="form-control" id="taskPriority" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskStatus">Status</label>
+                        <select class="form-control" id="taskStatus">
+                            <option value="true">Completed</option>
+                            <option value="false">Pending</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </form>
+            </div>
+            <div class="col-md-8">
+                <h4>Task List</h4>
+                <ul id="taskList" class="list-group"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const apiKey = localStorage.getItem('apiKey');
+            if (!apiKey) {
+                window.location.href = '/login'; // Redirect if no API key
+            }
+            const headers = { 'x-api-key': apiKey };
+
+            function loadTasks() {
+                axios.get('/task', { headers })
+                    .then(function(response) {
+                        const tasks = response.data;
+                        const taskList = $('#taskList');
+                        taskList.empty();
+                        tasks.forEach(function(task) {
+                            taskList.append(`
+                                <li class="list-group-item">
+                                    <h5>${task.title}</h5>
+                                    <p>${task.description}</p>
+                                    <p>Priority: ${task.priority}</p>
+                                    <p>Status: ${task.status ? 'Completed' : 'Pending'}</p>
+                                </li>
+                            `);
+                        });
+                    })
+                    .catch(function(error) {
+                        alert('Error loading tasks: ' + error.message);
+                    });
+            }
+
+            loadTasks();
+
+            $('#taskForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const title = $('#taskTitle').val();
+                const description = $('#taskDescription').val();
+                const priority = $('#taskPriority').val();
+                const status = $('#taskStatus').val() === 'true';
+
+                axios.post('/task', { title, description, priority, status }, { headers })
+                    .then(function(response) {
+                        loadTasks();
+                    })
+                    .catch(function(error) {
+                        alert('Error adding task: ' + error.message);
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
