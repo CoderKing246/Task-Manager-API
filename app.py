@@ -1,12 +1,16 @@
-from flask import Flask,render_template
+from flask import Flask,render_template,request, jsonify
 from flask_restful import Resource,reqparse,Api,marshal_with,abort,fields
 from flask_sqlalchemy import SQLAlchemy
+
+
 
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///database.db'
+
 db = SQLAlchemy(app)
 api = Api(app)
+
 
 class task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,6 +18,10 @@ class task(db.Model):
     description = db.Column(db.String(200), unique=False, nullable=False)
     priority = db.Column(db.Integer,unique=False,nullable=False)
     status = db.Column(db.Boolean,nullable=False)
+
+
+
+
 
 user_args = reqparse.RequestParser()
 
@@ -35,11 +43,13 @@ task_fields = {
 
 class Users(Resource):
     @marshal_with(task_fields)
+    
     def get(self):
         tasks = task.query.all()
         return tasks
 
     @marshal_with(task_fields)
+    
     def post(self):
         args = user_args.parse_args()
         tas = task(title=args['title'], description=args['description'], 
@@ -51,11 +61,13 @@ class Users(Resource):
 
 class UserById(Resource):
     @marshal_with(task_fields)
+    
     def get(self, id):
         user = task.query.get_or_404(id)
         return user
 
     @marshal_with(task_fields)
+    
     def patch(self, id):
         args = user_args.parse_args()
         user = task.query.get_or_404(id)
@@ -65,6 +77,7 @@ class UserById(Resource):
         user.status = args['status']
         db.session.commit()
         return user
+    
     
     def delete(self, id):
         user = task.query.get_or_404(id)
@@ -76,7 +89,6 @@ class UserById(Resource):
 
 api.add_resource(Users,'/task')
 api.add_resource(UserById,'/task/<int:id>')
-
 
 
 @app.route('/')
